@@ -371,11 +371,17 @@ export function getFunnelSummary(db: Db, days = 14) {
     leadsCaptured,
     testRidesBooked,
     testRidesCompleted,
-    purchases,
+    totalPurchases: purchases,
     conversion: {
       leadToTestRidePct: pct(testRidesBooked, leadsCaptured),
       testRideToCompletedPct: pct(testRidesCompleted, testRidesBooked),
-      leadToPurchasePct: pct(purchases, leadsCaptured)
+      // NOTE: `sales` is a general showroom ledger, not linked to individual leads (no lead_id
+      // column yet), so leads-captured and purchases are different populations — a walk-in sale
+      // with no prior tracked lead is common and expected. Reporting a "lead -> purchase %" here
+      // would silently compare unrelated numerator/denominator and can exceed 100%, which reads
+      // as a bug to anyone reviewing it. Report both real counts instead and let the reader draw
+      // the comparison, rather than publish a derived percentage that can lie.
+      note: "totalPurchases includes all showroom sales, not only ones traceable to a tracked lead; a lead-to-purchase % is not reported because sales aren't yet linked to their originating lead."
     }
   };
 }
