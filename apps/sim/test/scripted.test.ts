@@ -1,9 +1,55 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+const FIXTURES: Record<string, unknown> = {
+  why_choose_ev: {
+    headline: "Lower running cost.",
+    runningCostPer100Km: { petrolInr: 258, evInr: 26 },
+    performance: "0-60 km/h in 3.5s, top speed 135 km/h",
+    chargingAdvantage: "CCS2 universal charging.",
+    maintenance: "Fewer moving parts.",
+    assumptionNote: "Illustrative averages."
+  },
+  compare_variants: { T30: {}, "T30 Sport": {}, diff: { note: "Same specs." } },
+  get_product_specs: (() => {
+    const spec = { priceInr: 239000, colors: ["Arctic White"], zeroToSixtyKmhSec: 3.5, topSpeedKmh: 135, idcRangeKm: 200, publicFastCharge20to80Min: 36, homeCharge20to80Min: 60, dashboard: "7in TFT" };
+    return { ...spec, T30: spec, "T30 Sport": spec };
+  })(),
+  why_raptee: { company: "Raptee.HV", standoutDifferentiator: "CCS2" },
+  get_support_info: {
+    warranty: { batteryYears: 8, batteryKm: 80000, vehicleYears: 3, vehicleKm: 30000 },
+    doorstepService: "1 year",
+    roadsideAssistance: "1 year - request via request_roadside_assistance",
+    contact: "+91 89250 61646"
+  },
+  estimate_running_cost: { distanceKm: 100, petrol: { costInr: 258 }, raptee: { costInr: 26 }, savingsInr: 232, savingsPercent: 90 },
+  check_availability: [{ qty_in_stock: 2, color: "Arctic White", variant: "T30", city: "Chennai" }],
+  book_test_ride: { ride_date: "2026-10-23", time_slot: "11:00", location: "Chennai Showroom" },
+  capture_lead: { duplicate: false, lead: { id: "LEAD-1" } },
+  log_service_request: { duplicate: false, ticket: { id: "TKT-ab12cd34", status: "new", urgency: "normal" } },
+  get_ticket: { ticket: { id: "TKT-ab12cd34", category: "battery", status: "new" }, booking: null, claims: [] },
+  book_service_slot: { slot_date: "2026-10-23", slot_time: "11:00" },
+  request_roadside_assistance: { request: { location: "OMR, Chennai" }, warrantyNote: "Included for 1 year." },
+  check_warranty_coverage: { covered: true, warrantyType: "vehicle (3yr/30,000km)", reason: "Within limits." },
+  file_insurance_claim: { id: "CLM-1", status: "filed" },
+  request_customization: { id: "CUST-1" },
+  get_booking_status: { testRideCount: 1, purchaseCount: 0 },
+  get_funnel_summary: { periodDays: 14, leadsCaptured: 4, testRidesBooked: 3, totalPurchases: 5, conversion: { leadToTestRidePct: 75 } },
+  get_maintenance_queue: { totalOpen: 2, overdueCount: 0 },
+  get_sales_insights: { periodDays: 14, totalUnits: 3, totalRevenueInr: 717000, topVariant: "T30", topColor: "Arctic White" },
+  get_rsa_activity: { today: 1, periodDays: 7, periodTotal: 2, unusualActivityFlag: false },
+  owner_briefing: {
+    bookings: { testRidesToday: 1, purchasesToday: 0 },
+    maintenance: { totalOpen: 2, overdueCount: 0 },
+    sales7d: { totalUnits: 2, totalRevenueInr: 478000 },
+    rsa7d: { todayCount: 0 },
+    flaggedItems: []
+  }
+};
+
 const callMcpToolMock = vi.fn(async (tool: string, args: Record<string, unknown>) => ({
   tool,
   args,
-  response: { ok: true, tool, args },
+  response: FIXTURES[tool] ?? { ok: true, tool, args },
   isError: false
 }));
 
