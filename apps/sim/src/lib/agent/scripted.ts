@@ -79,57 +79,29 @@ function reply(text: string, tier: AgentResponse["tier"], toolCalls: McpToolCall
 // ---------------------------------------------------------------------------
 
 function sayWhyChooseEv(d: any): string {
-  return (
-    `Honestly, the biggest reason people switch is cost - you're looking at about ${inr(d.runningCostPer100Km.petrolInr)} ` +
-    `per 100km on petrol versus roughly ${inr(d.runningCostPer100Km.evInr)} on the T30, so it pays for itself fast. ` +
-    `You also get real performance - ${d.performance} - with instant torque off the line, and zero tailpipe emissions. ` +
-    `And charging's genuinely simple: the T30 uses the same CCS2 plug as electric cars, so you're not waiting on some ` +
-    `brand-new motorcycle charging network to get built - any existing fast charger works, and you'll go from 20 to 80% in about 36 minutes.`
-  );
+  return `Mainly the cost - about ${inr(d.runningCostPer100Km.petrolInr)} per 100km on petrol versus ${inr(d.runningCostPer100Km.evInr)} on the T30. Plus it charges on any existing CCS2 fast charger, same as electric cars.`;
 }
 
 function sayCompareVariants(): string {
-  return (
-    "Good question - honestly, the T30 and T30 Sport are mechanically identical. Same 0-to-60 in 3.5 seconds, same 135 km/h top speed, " +
-    "same 200km range, same price. It really comes down to which trim you like the look of, since there's no performance trade-off either way."
-  );
+  return "Honestly, they're mechanically identical - same performance, same range, same price. It really just comes down to which trim you like the look of.";
 }
 
 function sayProductSpecs(d: any, variant?: string): string {
   const v = variant ? d : d.T30;
   const name = variant ?? "T30";
-  return (
-    `The ${name} is priced at ${inr(v.priceInr)} all-inclusive, ex-showroom. It does 0 to 60 in ${v.zeroToSixtyKmhSec} seconds, ` +
-    `tops out at ${v.topSpeedKmh} km/h, and gets you about ${v.idcRangeKm}km on a charge. Public fast charging takes it from ` +
-    `20 to 80% in around ${v.publicFastCharge20to80Min} minutes - at home it's closer to an hour. It comes in ${v.colors.join(", ")}, ` +
-    `and has a ${v.dashboard}.`
-  );
+  return `The ${name} is ${inr(v.priceInr)} all-inclusive. 0 to 60 in ${v.zeroToSixtyKmhSec} seconds, about ${v.idcRangeKm}km range, and a 20-to-80% charge in ${v.publicFastCharge20to80Min} minutes.`;
 }
 
 function sayWhyRaptee(): string {
-  return (
-    "What really sets Raptee apart is the charging - the T30 uses CCS2, the same standard as electric cars in India, so it plugs " +
-    "straight into the fast-growing car charging network instead of waiting on motorcycle-specific infrastructure. On top of that " +
-    "you get a proper companion app - real-time battery and ride telematics, charge tracking, geofencing, over-the-air updates, and " +
-    "a Find My Raptee feature if you ever lose track of where you parked."
-  );
+  return "The big one's the charging - T30 uses CCS2, same as electric cars, so it plugs into chargers that already exist everywhere. Plus a solid companion app for tracking your ride and battery.";
 }
 
 function sayGetSupportInfo(d: any): string {
-  return (
-    `You're covered well here - the battery carries an ${d.warranty.batteryYears}-year or ${d.warranty.batteryKm.toLocaleString()}km warranty, ` +
-    `and the vehicle itself is covered for ${d.warranty.vehicleYears} years or ${d.warranty.vehicleKm.toLocaleString()}km. On top of that you get ` +
-    `${d.doorstepService} doorstep service and ${d.roadsideAssistance.split(" - ")[0]} roadside assistance included. For anything else, ` +
-    `you can reach the team directly at ${d.contact}.`
-  );
+  return `You're covered for ${d.warranty.batteryYears} years on the battery and ${d.warranty.vehicleYears} on the vehicle, plus a year of free doorstep service. Anything else, call us at ${d.contact.split(",")[0]}.`;
 }
 
 function sayRunningCost(d: any): string {
-  return (
-    `Over ${d.distanceKm}km, a typical petrol bike would cost you about ${inr(d.petrol.costInr)} in fuel, while the T30 ` +
-    `would cost roughly ${inr(d.raptee.costInr)} in electricity - that's about ${inr(d.savingsInr)} back in your pocket, ` +
-    `around a ${Math.round(d.savingsPercent)}% saving. (Just a heads up - the petrol-side numbers are typical Indian averages for comparison, not a specific bike's exact mileage.)`
-  );
+  return `Over ${d.distanceKm}km you'd save about ${inr(d.savingsInr)} versus petrol - that's roughly ${Math.round(d.savingsPercent)}% cheaper.`;
 }
 
 function sayAvailability(rows: any[]): string {
@@ -199,34 +171,28 @@ function sayBookingStatus(d: any): string {
 }
 
 function sayFunnel(d: any): string {
-  return (
-    `Over the last ${d.periodDays} days, ${d.leadsCaptured} new leads came in, ${d.testRidesBooked} of them booked a test ride ` +
-    `- about ${Math.round(d.conversion.leadToTestRidePct)}% - and we closed ${d.totalPurchases} sales in total across the showroom.`
-  );
+  return `${d.leadsCaptured} leads in the last ${d.periodDays} days, ${d.testRidesBooked} test rides, ${d.totalPurchases} sales.`;
 }
 
 function sayMaintenanceQueue(d: any): string {
-  if (d.totalOpen === 0) return "Workshop's clear right now - nothing open.";
-  const overdueNote = d.overdueCount > 0 ? `, and ${d.overdueCount} of those have been sitting past the 48-hour mark and could use a push` : "";
-  return `You've got ${d.totalOpen} job${d.totalOpen === 1 ? "" : "s"} open in the workshop right now${overdueNote}.`;
+  if (d.totalOpen === 0) return "Workshop's clear right now.";
+  const overdueNote = d.overdueCount > 0 ? `, ${d.overdueCount} overdue` : "";
+  return `${d.totalOpen} job${d.totalOpen === 1 ? "" : "s"} in the workshop${overdueNote}.`;
 }
 
 function saySalesInsights(d: any): string {
-  return (
-    `Over the last ${d.periodDays} days we've moved ${d.totalUnits} unit${d.totalUnits === 1 ? "" : "s"}, bringing in ${inr(d.totalRevenueInr)}. ` +
-    `${d.topVariant ?? "Nothing"} has been the strongest seller${d.topColor ? `, mostly in ${d.topColor}` : ""}.`
-  );
+  return `${d.totalUnits} unit${d.totalUnits === 1 ? "" : "s"} sold in the last ${d.periodDays} days, ${inr(d.totalRevenueInr)} in revenue. ${d.topVariant ?? "Nothing"} led the way.`;
 }
 
 function sayRsaActivity(d: any): string {
-  const flag = d.unusualActivityFlag ? " That's higher than usual today, might be worth a look as a possible quality signal." : "";
-  return `We've had ${d.today} roadside assistance call${d.today === 1 ? "" : "s"} today, ${d.periodTotal} over the past ${d.periodDays} days.${flag}`;
+  const flag = d.unusualActivityFlag ? " That's higher than usual." : "";
+  return `${d.today} roadside call${d.today === 1 ? "" : "s"} today, ${d.periodTotal} this past week.${flag}`;
 }
 
 function sayOwnerBriefing(d: any): string {
   const sentences: string[] = [];
   sentences.push(
-    `Here's where things stand: ${d.bookings.testRidesToday} test ride${d.bookings.testRidesToday === 1 ? "" : "s"} and ${d.bookings.purchasesToday} purchase${d.bookings.purchasesToday === 1 ? "" : "s"} today.`
+    `${d.bookings.testRidesToday} test ride${d.bookings.testRidesToday === 1 ? "" : "s"} and ${d.bookings.purchasesToday} purchase${d.bookings.purchasesToday === 1 ? "" : "s"} today.`
   );
   sentences.push(
     `${d.maintenance.totalOpen} job${d.maintenance.totalOpen === 1 ? "" : "s"} are open in the workshop${d.maintenance.overdueCount ? `, ${d.maintenance.overdueCount} overdue` : ""}.`
