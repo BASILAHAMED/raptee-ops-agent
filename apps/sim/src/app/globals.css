@@ -164,6 +164,17 @@ body {
   cursor: pointer;
 }
 
+.input-row button.mic-active {
+  background: #e23e57;
+  color: #fff;
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(226, 62, 87, 0.55); }
+  50% { box-shadow: 0 0 0 10px rgba(226, 62, 87, 0); }
+}
+
 .toolbar {
   margin-top: 12px;
   display: flex;

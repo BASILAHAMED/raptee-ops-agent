@@ -29,6 +29,25 @@ interface LeadCtx {
   leadName: string;
 }
 
+// Minimal typing for the Web Speech API's SpeechRecognition — not in default TS DOM libs.
+interface SpeechRecognitionResultLike {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+}
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  onresult: ((e: SpeechRecognitionResultLike) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+type SRWindow = Window & {
+  SpeechRecognition?: new () => SpeechRecognitionLike;
+  webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+};
+
 export default function EchoDevice() {
   const [persona, setPersona] = useState<Persona>("prospect");
   const [turns, setTurns] = useState<TurnRecord[]>([]);
@@ -43,6 +62,9 @@ export default function EchoDevice() {
   const [voiceName, setVoiceName] = useState<string>("");
   const [drawerOpen, setDrawerOpen] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const [listening, setListening] = useState(false);
+  const [canListen, setCanListen] = useState(false);
 
   const activePersona = PERSONAS.find((p) => p.id === persona)!;
 
@@ -79,6 +101,33 @@ export default function EchoDevice() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [turns]);
+
+  useEffect(() => {
+    const w = window as SRWindow;
+    setCanListen(!!(w.SpeechRecognition ?? w.webkitSpeechRecognition));
+  }, []);
+
+  function listen() {
+    if (listening || loading) return;
+    const w = window as SRWindow;
+    const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!Ctor) return;
+    if (!recognitionRef.current) {
+      const r = new Ctor();
+      r.lang = "en-US";
+      r.interimResults = false;
+      r.continuous = false;
+      r.onresult = (e) => {
+        const transcript = e.results[0]?.[0]?.transcript;
+        if (transcript) void send(transcript);
+      };
+      r.onend = () => setListening(false);
+      r.onerror = () => setListening(false);
+      recognitionRef.current = r;
+    }
+    setListening(true);
+    recognitionRef.current.start();
+  }
 
   function speak(text: string) {
     if (!speechOn || typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -171,6 +220,18 @@ export default function EchoDevice() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send(input)}
           />
+          {canListen && (
+            <button
+              type="button"
+              onClick={listen}
+              disabled={loading || listening}
+              className={listening ? "mic-active" : undefined}
+              title={listening ? "Listening..." : "Speak instead of typing"}
+              aria-label="Speak your question"
+            >
+              {listening ? "Listening..." : "🎤"}
+            </button>
+          )}
           <button onClick={() => send(input)} disabled={loading}>
             {loading ? "..." : "Ask"}
           </button>
