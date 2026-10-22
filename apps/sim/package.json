@@ -1,0 +1,32 @@
+{
+  "name": "@raptee-ops/sim",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Simulated Alexa+ Echo Show web app for the Raptee Ops Agent",
+  "scripts": {
+    "dev": "next dev -p 3401",
+    "build": "next build",
+    "start": "next start -p 3401",
+    "test": "vitest run",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@google/genai": "^0.3.0",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "next": "^14.2.18",
+    "openai": "^4.77.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

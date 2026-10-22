@@ -1,0 +1,17 @@
+{
+  "name": "raptee-ops-agent",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Raptee Ops Agent - Alexa+ MCP server and simulated Echo Show web app for Raptee.HV",
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "dev:mcp": "pnpm --filter @raptee-ops/mcp dev",
+    "dev:sim": "pnpm --filter @raptee-ops/sim dev"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}
