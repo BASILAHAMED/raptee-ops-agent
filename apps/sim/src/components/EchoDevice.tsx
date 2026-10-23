@@ -174,8 +174,16 @@ export default function EchoDevice() {
   }
 
   return (
-    <div className="device-shell">
-      <div className="device-screen">
+    <div className="echo-room">
+      <div className="device-shell">
+        <div className="device-cam" />
+        <div className={`light-bar ${listening ? "listening" : loading ? "thinking" : ""}`}>
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="device-screen">
         <div className="persona-tabs">
           {PERSONAS.map((p) => (
             <button
@@ -305,6 +313,10 @@ export default function EchoDevice() {
               ))}
           </div>
         )}
+        </div>
+        <div className="device-base">
+          <div className="device-base-grille" />
+        </div>
       </div>
     </div>
   );
