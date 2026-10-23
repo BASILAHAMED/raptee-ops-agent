@@ -15,5 +15,4 @@ coverage/
 .next/
 *.log
 *.tsbuildinfo
-test_results.json
 test_summary.txt

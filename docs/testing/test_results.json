@@ -1,0 +1,211 @@
+[
+  {
+    "persona": "prospect",
+    "msg": "Why should I buy an EV instead of a petrol bike?",
+    "expect": "why_choose_ev",
+    "used": "why_choose_ev",
+    "tier": "groq",
+    "pass": true,
+    "reply": "EVs give you huge savings on fuel—about ₹26 per 100 km versus ₹258 for a petrol bike—plus instant torque, zero emissions and far fewer moving parts to service. Ready to hear how the T30 fits your ride needs?"
+  },
+  {
+    "persona": "prospect",
+    "msg": "What are the specs of the T30?",
+    "expect": "get_product_specs",
+    "used": "get_product_specs",
+    "tier": "groq",
+    "pass": true,
+    "reply": "The T30 hits 0‑60 km/h in about 3.5 seconds, tops out at 135 km/h, and offers roughly a 200 km range. It’s got a 17.7 cm touchscreen, fast‑charge 20‑80 % in 36 minutes, and starts at ₹239 k. Want details on a specific colour or to book a test ride?"
+  },
+  {
+    "persona": "prospect",
+    "msg": "What makes Raptee different from other EV bikes?",
+    "expect": "why_raptee",
+    "used": "why_raptee",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Raptee’s T30 plugs into the CCS‑2 universal fast‑charging network used by electric cars, so you can charge at any car charger and get a 20‑80 % top‑up in about 36 minutes. It also comes with built‑in telematics, OTA updates and a “Find My Raptee” tracker. Want to hear how that compares to the T30 Sport?"
+  },
+  {
+    "persona": "prospect",
+    "msg": "What warranty and support do you offer?",
+    "expect": "get_support_info",
+    "used": "get_support_info",
+    "tier": "groq",
+    "pass": true,
+    "reply": "We give an 8‑year (or 80,000 km) battery warranty, a 3‑year (or 30,000 km) vehicle warranty, plus one year of doorstep service and roadside assistance. Comprehensive insurance options are also available at purchase. Want me to note any of that for you?"
+  },
+  {
+    "persona": "prospect",
+    "msg": "What's the difference between the T30 and T30 Sport?",
+    "expect": "compare_variants",
+    "used": "compare_variants",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Both the T30 and T30 Sport have the same performance—0‑60 in 3.5 seconds, 135 km/h top speed, about 200 km range and identical charging times—and they cost the same. The Sport version is simply a sport‑tuned trim with different styling, so you’d pick it if you prefer the look and feel. Want to see which colors we have in your city?"
+  },
+  {
+    "persona": "prospect",
+    "msg": "How much would I save riding 150km a day compared to a petrol bike?",
+    "expect": "estimate_running_cost",
+    "used": "estimate_running_cost",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Riding the T30 for 150 km a day would cost about ₹38 in electricity versus roughly ₹386 for petrol – you’d save around ₹348 a day, about a 90 % reduction. Want to see how that translates into a monthly budget?"
+  },
+  {
+    "persona": "prospect",
+    "msg": "Do you have the Arctic White T30 available in Chennai?",
+    "expect": "check_availability",
+    "used": "check_availability",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Yes, we have five Arctic White T30s in stock in Chennai. Want me to hold one for you?"
+  },
+  {
+    "persona": "prospect",
+    "msg": "I'm interested - my name is Rohan Kumar, phone 9845099988, I'm in Bengaluru.",
+    "expect": "capture_lead",
+    "used": "capture_lead",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Got you down, Rohan. Any particular colour or T30 model you’d like to see?"
+  },
+  {
+    "persona": "prospect",
+    "msg": "Can you book me a test ride in Chennai?",
+    "expect": "book_test_ride",
+    "used": "",
+    "tier": "groq",
+    "pass": false,
+    "reply": "Sure thing! Which date works best for you in Chennai?"
+  },
+  {
+    "persona": "owner",
+    "msg": "My battery isn't holding charge properly anymore.",
+    "expect": "log_service_request",
+    "used": "check_warranty_coverage,log_service_request",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Your battery is still under the 8‑year/80,000 km warranty, so we’ll get it inspected. I’ve logged a service request for you (ticket TKT-d611e61c). I’ll arrange for a technician to look at it—shall I book a service slot now?"
+  },
+  {
+    "persona": "owner",
+    "msg": "I'm stranded near OMR, Chennai, need roadside help right now.",
+    "expect": "request_roadside_assistance",
+    "used": "request_roadside_assistance",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Your roadside assistance is on the way—dispatch #RSA‑0431084f is headed to OMR, Chennai now. I’ll let you know when it arrives. Safe travels!"
+  },
+  {
+    "persona": "owner",
+    "msg": "Is a brake issue covered under my warranty?",
+    "expect": "check_warranty_coverage",
+    "used": "check_warranty_coverage",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Yes, the brake work is covered under your 3‑year/30,000 km warranty. Want me to open a service request for you?"
+  },
+  {
+    "persona": "owner",
+    "msg": "I need to file an insurance claim, my bike got scratched in a parking accident.",
+    "expect": "file_insurance_claim",
+    "used": "file_insurance_claim",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Your claim’s been filed (ID CLM‑363c2661). We’ll keep you posted on next steps. Anything else I can help with?"
+  },
+  {
+    "persona": "owner",
+    "msg": "I want to customize my bike with a new seat cover.",
+    "expect": "request_customization",
+    "used": "request_customization",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Got it—your seat‑cover request is logged. We'll start processing it and let you know once it's ready."
+  },
+  {
+    "persona": "leadership",
+    "msg": "What's booked today?",
+    "expect": "get_booking_status",
+    "used": "get_booking_status",
+    "tier": "scripted",
+    "pass": true,
+    "reply": "Today you've got 2 test rides booked."
+  },
+  {
+    "persona": "leadership",
+    "msg": "How's our sales funnel looking?",
+    "expect": "get_funnel_summary",
+    "used": "get_funnel_summary",
+    "tier": "groq",
+    "pass": true,
+    "reply": "In the last 30 days we captured five leads, booked three test rides but none have been completed yet, and we logged ten purchases overall. Want me to focus on moving those test rides forward?"
+  },
+  {
+    "persona": "leadership",
+    "msg": "What's in the maintenance queue?",
+    "expect": "get_maintenance_queue",
+    "used": "get_maintenance_queue",
+    "tier": "scripted",
+    "pass": true,
+    "reply": "4 jobs in the workshop, 1 overdue."
+  },
+  {
+    "persona": "leadership",
+    "msg": "Give me sales insights for the week.",
+    "expect": "get_sales_insights",
+    "used": "get_sales_insights",
+    "tier": "groq",
+    "pass": true,
+    "reply": "In the past week we sold six bikes, pulling in about ₹1.43 million. The T30 Sport led the pack, and Arctic White was the most‑picked color. Want me to dig into any specific variant or color performance?"
+  },
+  {
+    "persona": "leadership",
+    "msg": "How many roadside assistance calls today?",
+    "expect": "get_rsa_activity",
+    "used": "get_rsa_activity",
+    "tier": "groq",
+    "pass": true,
+    "reply": "We’ve logged two roadside‑assistance calls so far today. Want me to dig into the details or flag anything?"
+  },
+  {
+    "persona": "leadership",
+    "msg": "Give me the daily briefing.",
+    "expect": "owner_briefing",
+    "used": "owner_briefing",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Sure thing—today’s snapshot: two test‑rides booked, no purchases yet; we have four open service tickets, one overdue past the 48‑hour SLA; RSA calls are higher than usual, with two today. Want me to flag the overdue ticket for immediate action?"
+  },
+  {
+    "persona": "owner",
+    "msg": "My headlight keeps flickering at night.",
+    "expect": "log_service_request",
+    "used": "log_service_request",
+    "tier": "groq",
+    "pass": true,
+    "reply": "I’ve opened a service ticket for the flickering headlight. Would you like me to book a workshop slot for you?"
+  },
+  {
+    "persona": "owner",
+    "msg": "status of TKT-d82a24a5",
+    "expect": "get_ticket",
+    "used": "get_ticket",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Your ticket is still marked as new. Want me to schedule it for a service slot?"
+  },
+  {
+    "persona": "owner",
+    "msg": "book TKT-d82a24a5",
+    "expect": "book_service_slot",
+    "used": "book_service_slot",
+    "tier": "groq",
+    "pass": true,
+    "reply": "Your ticket’s been placed in the workshop for tomorrow at 9:30 am. Anything else I can help with?"
+  }
+]
+
+=== 22/23 PASSED ===
