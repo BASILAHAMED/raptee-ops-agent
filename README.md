@@ -1,8 +1,10 @@
 # Raptee Ops Agent
 
-A self-hosted MCP server + simulated Alexa+ Echo Show web app for **Raptee.HV**,
-India's first high-voltage electric motorcycle company. Built for the
-Amazon Developer Hackathon - Build, Ship, Shape (Alexa+ track).
+**The voice ops layer EV two-wheeler brands are missing.** A self-hosted MCP
+server + simulated Alexa+ Echo Show app that replaces three broken phone
+conversations - sales, service, leadership reporting - with one agentic
+surface, built against real Raptee.HV data for the Amazon Developer
+Hackathon (Build, Ship, Shape - Alexa+ track).
 
 One voice/chat surface, three personas, 22 real tools backed by a real
 (seeded) SQLite dataset - not a demo that just answers trivia.
@@ -33,23 +35,78 @@ expected serverless tradeoff for this hackathon deployment, not a bug.
 
 ## The pitch
 
-Raptee sells a genuinely different EV motorcycle - CCS2 universal charging
-means every T30 owner can use India's existing EV **car** fast-charging
-network, not a scarce motorcycle-specific grid. That single fact unlocks a
-three-sided voice product:
+**India sells over 1 million electric two-wheelers a year, and every one of
+those OEMs runs the same three broken conversations by phone and email:** a
+prospect who wants a straight answer on range/cost before they'll visit a
+showroom, an owner with a battery problem who can't get a human on the line
+fast enough, and a GM who finds out the workshop queue is backed up by
+reading a spreadsheet a week late. Raptee.HV is the forcing example here -
+CCS2 universal charging means a T30 owner can use India's existing EV **car**
+charging network, not a scarce motorcycle-specific grid, which is exactly the
+kind of fact a prospect needs explained clearly and immediately, not buried
+in a brochure.
 
-- **Prospects** get real answers (specs, running-cost math, availability) and
-  the conversation itself becomes a sales action: `capture_lead`,
-  `book_test_ride`.
-- **Owners** get real service actions: `log_service_request` (deduped),
-  `get_ticket`, `book_service_slot`, `request_roadside_assistance` (always
-  urgent, distinct from a routine ticket), `check_warranty_coverage` (computed
-  from purchase date + odometer, not a canned answer), `file_insurance_claim`,
-  `request_customization`.
-- **Leadership** gets decision signals, not raw tables: `get_funnel_summary`
-  (lead -> test ride -> purchase conversion), `get_maintenance_queue` (with an
-  overdue/SLA flag), `get_rsa_activity` (flags unusual breakdown-call volume -
-  a possible quality signal), `owner_briefing` (the rollup).
+**Who actually buys this:** the direct customer is any EV two-wheeler OEM or
+multi-brand dealership group (Raptee, Ather, Ola Electric, TVS iQube, Bajaj
+Chetak, Revolt and the dozen smaller brands behind them) - not the end rider.
+It replaces or augments a call center/showroom-floor headcount that today
+handles exactly these three jobs by phone, WhatsApp, and walk-in, at a
+fraction of the fully-loaded cost of even one shift of human agents, and it
+never puts a caller on hold. The natural pricing shape is the same SaaS model
+any dealership-management or CRM add-on uses: a flat platform fee plus a
+per-location or per-conversation charge, sold into an OEM's existing service
+network rather than to individual riders.
+
+**The business case, in numbers a judge can check against the code, not
+marketing copy:**
+- Every prospect conversation that reaches `capture_lead` or `book_test_ride`
+  is a sales-funnel action that happened without a human ever picking up the
+  phone - at scale, that's the difference between leads that evaporate
+  waiting for a callback and leads captured at 2am.
+- `log_service_request` deduplicates by phone+category+2-hour window, so a
+  worried owner calling three times about the same fault doesn't create three
+  tickets a technician has to untangle later.
+- `check_warranty_coverage` computes the answer live from purchase date and
+  odometer reading - no owner is told "let me check and call you back,"
+  which is the #1 driver of bad CSAT in vehicle service calls.
+- `request_roadside_assistance` is deliberately a separate, always-urgent
+  tool from a routine ticket - a stranded rider is a safety issue, not a
+  queue item, and the leadership `get_rsa_activity` tool flags unusual
+  breakdown-call volume as a possible quality signal before it becomes a
+  recall-sized problem.
+- `owner_briefing` turns four separate systems (bookings, workshop queue,
+  sales, RSA) into one daily rollup a GM can act on same-day instead of
+  finding out from a weekly report.
+
+## Why this should win (mapped to the stated judging criteria)
+
+- **Tech Implementation** - this is not a thin MCP wrapper around one API.
+  `apps/mcp` is a real, spec-compliant (2025-11-25), stateless Streamable
+  HTTP server with 22 tools, 2 resources, and a prompt, backed by genuine
+  relational logic (dedup windows, computed warranty eligibility, SLA-aware
+  queries) over `node:sqlite` - and it's independently verified end-to-end,
+  not just unit-tested in isolation (see `docs/testing/test_results.json`:
+  22/22 real tool calls against the live server, real Groq function-calling
+  choosing tools autonomously, not scripted keyword matching pretending to
+  be an agent).
+- **Design** - the UI is a deliberate Echo Show simulation (charcoal bezel,
+  Alexa-cyan light bar that reacts to listening/thinking state, light
+  response cards over a dark ambient screen, mic input via the Web Speech
+  API), not a generic chat widget with an Alexa logo pasted on it, and every
+  response is tuned for voice: one or two short sentences, no markdown
+  tables, no raw JSON, ends in one concrete next step instead of an open
+  "anything else?"
+- **Potential Impact** - a credible buyer (any 2W EV OEM), a quantified
+  problem (missed leads, slow service response, delayed leadership
+  visibility), and a product shape (SaaS, sold into an existing dealership
+  network) that scales past this one hackathon demo without a pivot.
+- **Quality of the Idea** - this is the "creative" example in Amazon's own
+  judging rubric, not the "obvious" one: an agentic workflow that
+  autonomously chains multiple tools per turn (e.g. `log_service_request` ->
+  `book_service_slot` without being told the second step), a context-aware
+  surface that keeps owner/lead identity across turns, and three genuinely
+  different personas sharing one MCP server rather than three copies of a
+  single-turn Q&A bot.
 
 ## Architecture
 
