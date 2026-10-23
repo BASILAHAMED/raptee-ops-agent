@@ -4,11 +4,16 @@ dist/
 *.db-journal
 *.db-wal
 *.db-shm
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
 .env
 .env.local
 .DS_Store
 coverage/
 .next/
 *.log
+*.tsbuildinfo
 test_results.json
 test_summary.txt

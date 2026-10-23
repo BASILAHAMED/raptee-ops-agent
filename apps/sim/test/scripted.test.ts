@@ -46,12 +46,21 @@ const FIXTURES: Record<string, unknown> = {
   }
 };
 
-const callMcpToolMock = vi.fn(async (tool: string, args: Record<string, unknown>) => ({
-  tool,
-  args,
-  response: FIXTURES[tool] ?? { ok: true, tool, args },
-  isError: false
-}));
+const callMcpToolMock = vi.fn(async (tool: string, args: Record<string, unknown>) => {
+  if (args.owner_id === "OWN-does-not-exist") {
+    return { tool, args, response: { error: `Owner not found: ${args.owner_id}` }, isError: true };
+  }
+  return {
+    tool,
+    args,
+    response: FIXTURES[tool] ?? { ok: true, tool, args },
+    isError: false
+  };
+});
+
+/** Owner id "OWN-does-not-exist" intentionally has no success fixture above -
+ * the mock treats it as a real MCP error response (e.g. a stale/unknown
+ * owner id), which exposed the "reference undefined" bug this guards. */
 
 vi.mock("../src/lib/mcpClient.js", () => ({
   callMcpTool: (...a: [string, Record<string, unknown>]) => callMcpToolMock(...a)
@@ -169,6 +178,17 @@ describe("scripted agent - existing owner phrasings (battery family)", () => {
   it("files an insurance claim", async () => {
     await runScriptedAgent("I want to file an insurance claim for a fall", "owner", ctx);
     expect(callMcpToolMock).toHaveBeenCalledWith("file_insurance_claim", expect.any(Object));
+  });
+
+  it("answers gracefully when a tool call errors, instead of leaking 'undefined' into the reply", async () => {
+    const result = await runScriptedAgent(
+      "I want to file an insurance claim for a fall",
+      "owner",
+      { ownerId: "OWN-does-not-exist", bikeVin: "VIN-1" }
+    );
+    expect(result.reply.toLowerCase()).not.toContain("undefined");
+    expect(result.reply.toLowerCase()).not.toContain("reference");
+    expect(result.reply.length).toBeGreaterThan(0);
   });
 
   it("logs a customization request distinct from a repair", async () => {

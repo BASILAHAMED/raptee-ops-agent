@@ -1,7 +1,7 @@
 const BASE = "http://127.0.0.1:3401/api/agent";
 
-const OWNER = { ownerId: "OWN-184b4a50", bikeVin: "RAPT30A0001IN" }; // Arjun Mehta, T30
-const LEAD = { leadId: "LEAD-9d579c99" }; // Anita Desai
+const OWNER = { ownerId: "OWN-8a1e3a09", bikeVin: "RAPT30A0001IN" }; // Arjun Mehta, T30
+const LEAD = { leadId: "LEAD-e5fbe7e7" }; // Anita Desai
 
 async function ask(message, persona, context) {
   const res = await fetch(BASE, {
@@ -26,7 +26,7 @@ const cases = [
   { persona: "prospect", msg: "What's the difference between the T30 and T30 Sport?", expect: "compare_variants" },
   { persona: "prospect", msg: "How much would I save riding 150km a day compared to a petrol bike?", expect: "estimate_running_cost" },
   { persona: "prospect", msg: "Do you have the Arctic White T30 available in Chennai?", expect: "check_availability" },
-  { persona: "prospect", msg: "I'm interested - my name is Rohan Kumar, phone 9845012345, I'm in Bengaluru.", expect: "capture_lead" },
+  { persona: "prospect", msg: "I'm interested - my name is Rohan Kumar, phone 9845099988, I'm in Bengaluru.", expect: "capture_lead" },
   { persona: "prospect", msg: "Can you book me a test ride in Chennai?", expect: "book_test_ride", context: LEAD },
 
   // --- owner (7 tools) ---

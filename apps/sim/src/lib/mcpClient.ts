@@ -25,7 +25,13 @@ function getMcpConfig() {
 export async function callMcpTool(toolName: string, args: Record<string, unknown>): Promise<McpToolCallTrace> {
   const { url, token } = getMcpConfig();
   const transport = new StreamableHTTPClientTransport(new URL(url), {
-    requestInit: token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+    // Next.js aggressively caches `fetch()` responses by URL/body in some
+    // configurations. MCP tool calls are stateful and time-sensitive -
+    // every call MUST hit the live server, never a cached response.
+    requestInit: {
+      cache: "no-store",
+      ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {})
+    }
   });
   const client = new Client({ name: "raptee-ops-sim", version: "0.1.0" });
   try {
@@ -58,7 +64,10 @@ export async function callMcpTool(toolName: string, args: Record<string, unknown
 export async function listMcpTools(): Promise<string[]> {
   const { url, token } = getMcpConfig();
   const transport = new StreamableHTTPClientTransport(new URL(url), {
-    requestInit: token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+    requestInit: {
+      cache: "no-store",
+      ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {})
+    }
   });
   const client = new Client({ name: "raptee-ops-sim", version: "0.1.0" });
   await client.connect(transport);

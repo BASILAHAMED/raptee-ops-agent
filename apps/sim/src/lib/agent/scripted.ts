@@ -61,13 +61,30 @@ function inr(n: number): string {
   return `₹${Math.round(n).toLocaleString("en-IN")}`;
 }
 
-async function run(tool: string, args: Record<string, unknown>): Promise<{ trace: McpToolCallTrace; data: any }> {
-  const trace = await callMcpTool(tool, args);
-  return { trace, data: trace.response };
-}
-
 function reply(text: string, tier: AgentResponse["tier"], toolCalls: McpToolCallTrace[]): AgentResponse {
   return { reply: text, tier, toolCalls };
+}
+
+/** A failed MCP tool call still has data-shaped JSON in it (`{error: "..."}`) -
+ * never feed that into a success renderer (that's how "reference undefined"
+ * bugs happen). Always check isError first and answer in plain language. */
+function friendlyError(msg?: string): string {
+  const m = msg ?? "";
+  if (/not found/i.test(m)) return "Hmm, I'm not finding that in our system right now - could you double-check those details with me?";
+  if (/no open workshop slots/i.test(m)) return "Looks like the workshop's fully booked out over the next couple weeks - let me flag this to the team directly instead.";
+  return "Sorry, something went wrong on my end there - mind trying that again?";
+}
+
+async function callAndRender(
+  tool: string,
+  args: Record<string, unknown>,
+  render: (d: any) => string
+): Promise<AgentResponse> {
+  const trace = await callMcpTool(tool, args);
+  if (trace.isError) {
+    return reply(friendlyError((trace.response as any)?.error), "scripted", [trace]);
+  }
+  return reply(render(trace.response), "scripted", [trace]);
 }
 
 // ---------------------------------------------------------------------------
@@ -220,9 +237,7 @@ async function handleProspect(message: string, ctx: AgentContext | undefined): P
       /\bworth (it )?switching\b/i
     ])
   ) {
-    const { trace, data } = await run("why_choose_ev", {});
-    toolCalls.push(trace);
-    return reply(sayWhyChooseEv(data), "scripted", toolCalls);
+    return callAndRender("why_choose_ev", {}, sayWhyChooseEv);
   }
 
   if (
@@ -233,9 +248,7 @@ async function handleProspect(message: string, ctx: AgentContext | undefined): P
       /\bwhich (variant|one) should i (buy|pick|choose)\b/i
     ])
   ) {
-    const { trace } = await run("compare_variants", {});
-    toolCalls.push(trace);
-    return reply(sayCompareVariants(), "scripted", toolCalls);
+    return callAndRender("compare_variants", {}, sayCompareVariants);
   }
 
   if (
@@ -251,9 +264,7 @@ async function handleProspect(message: string, ctx: AgentContext | undefined): P
     ])
   ) {
     const variant = extractVariant(text);
-    const { trace, data } = await run("get_product_specs", variant ? { variant } : {});
-    toolCalls.push(trace);
-    return reply(sayProductSpecs(data, variant), "scripted", toolCalls);
+    return callAndRender("get_product_specs", variant ? { variant } : {}, (d) => sayProductSpecs(d, variant));
   }
 
   if (
@@ -265,9 +276,7 @@ async function handleProspect(message: string, ctx: AgentContext | undefined): P
       /\bwhat makes raptee\b/i
     ])
   ) {
-    const { trace } = await run("why_raptee", {});
-    toolCalls.push(trace);
-    return reply(sayWhyRaptee(), "scripted", toolCalls);
+    return callAndRender("why_raptee", {}, sayWhyRaptee);
   }
 
   if (
@@ -280,9 +289,7 @@ async function handleProspect(message: string, ctx: AgentContext | undefined): P
       /\bhow do i (reach|contact) raptee\b/i
     ])
   ) {
-    const { trace, data } = await run("get_support_info", {});
-    toolCalls.push(trace);
-    return reply(sayGetSupportInfo(data), "scripted", toolCalls);
+    return callAndRender("get_support_info", {}, sayGetSupportInfo);
   }
 
   if (
@@ -295,18 +302,14 @@ async function handleProspect(message: string, ctx: AgentContext | undefined): P
     ])
   ) {
     const distance_km = extractDistanceKm(text);
-    const { trace, data } = await run("estimate_running_cost", { distance_km });
-    toolCalls.push(trace);
-    return reply(sayRunningCost(data), "scripted", toolCalls);
+    return callAndRender("estimate_running_cost", { distance_km }, sayRunningCost);
   }
 
   if (matchesAny(text, [/\bavailab(le|ility)\b/i, /\bin stock\b/i, /\bshowroom\b/i, /\bdo you have\b.*\bin\b/i])) {
     const city = extractCity(text);
     const variant = extractVariant(text);
     const color = extractColor(text);
-    const { trace, data } = await run("check_availability", { city, variant, color });
-    toolCalls.push(trace);
-    return reply(sayAvailability(data), "scripted", toolCalls);
+    return callAndRender("check_availability", { city, variant, color }, sayAvailability);
   }
 
   if (matchesAny(text, [/\btest ride\b/i, /\bbook a ride\b/i, /\bschedule a ride\b/i])) {
@@ -319,13 +322,15 @@ async function handleProspect(message: string, ctx: AgentContext | undefined): P
       );
     }
     const city = extractCity(text) ?? "Chennai";
-    const { trace, data } = await run("book_test_ride", {
-      lead_id: leadId,
-      date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
-      location: `${city} Showroom`
-    });
-    toolCalls.push(trace);
-    return reply(sayTestRideBooked(data), "scripted", toolCalls);
+    return callAndRender(
+      "book_test_ride",
+      {
+        lead_id: leadId,
+        date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+        location: `${city} Showroom`
+      },
+      sayTestRideBooked
+    );
   }
 
   if (
@@ -346,15 +351,11 @@ async function handleProspect(message: string, ctx: AgentContext | undefined): P
     }
     const variant = extractVariant(text);
     const color = extractColor(text);
-    const { trace, data } = await run("capture_lead", {
-      name,
-      phone,
-      city,
-      interested_variant: variant,
-      interested_color: color
-    });
-    toolCalls.push(trace);
-    return reply(sayLeadCaptured(data, name), "scripted", toolCalls);
+    return callAndRender(
+      "capture_lead",
+      { name, phone, city, interested_variant: variant, interested_color: color },
+      (d) => sayLeadCaptured(d, name)
+    );
   }
 
   return reply(
@@ -423,13 +424,11 @@ async function handleOwner(message: string, ctx: AgentContext | undefined): Prom
     }
     const locationMatch = message.match(/(?:near|at|on)\s+([a-z0-9 ,.'-]{3,60})/i);
     const location = locationMatch ? locationMatch[1].trim() : "Location not specified";
-    const { trace, data } = await run("request_roadside_assistance", {
-      owner_id: ctx.ownerId,
-      bike_vin: ctx.bikeVin,
-      location
-    });
-    toolCalls.push(trace);
-    return reply(sayRsaDispatched(data), "scripted", toolCalls);
+    return callAndRender(
+      "request_roadside_assistance",
+      { owner_id: ctx.ownerId, bike_vin: ctx.bikeVin, location },
+      sayRsaDispatched
+    );
   }
 
   if (matchesAny(text, [/\bstatus of (ticket|my ticket)\b/i, /\bTKT-/i, /\blook ?up ticket\b/i, /\bcheck my ticket\b/i])) {
@@ -437,9 +436,7 @@ async function handleOwner(message: string, ctx: AgentContext | undefined): Prom
     if (!ticketId) {
       return reply("What's the ticket ID (e.g. TKT-xxxxxxxx) you'd like me to look up?", "scripted", toolCalls);
     }
-    const { trace, data } = await run("get_ticket", { ticket_id: ticketId });
-    toolCalls.push(trace);
-    return reply(sayTicket(data), "scripted", toolCalls);
+    return callAndRender("get_ticket", { ticket_id: ticketId }, sayTicket);
   }
 
   if (matchesAny(text, [/\bbook\b.*\b(service|workshop|slot|ticket)\b/i, /\bschedule\b.*\bservice\b/i])) {
@@ -447,9 +444,7 @@ async function handleOwner(message: string, ctx: AgentContext | undefined): Prom
     if (!ticketId) {
       return reply("Which ticket ID should I schedule into the workshop?", "scripted", toolCalls);
     }
-    const { trace, data } = await run("book_service_slot", { ticket_id: ticketId });
-    toolCalls.push(trace);
-    return reply(sayServiceBooked(data), "scripted", toolCalls);
+    return callAndRender("book_service_slot", { ticket_id: ticketId }, sayServiceBooked);
   }
 
   if (matchesAny(text, [/\bwarranty\b/i, /\bcovered\b/i, /\bchargeable\b/i])) {
@@ -457,21 +452,14 @@ async function handleOwner(message: string, ctx: AgentContext | undefined): Prom
       return reply("Which bike and what kind of issue should I check warranty coverage for?", "scripted", toolCalls);
     }
     const category = detectCategory(text) ?? "mechanical";
-    const { trace, data } = await run("check_warranty_coverage", { bike_vin: ctx.bikeVin, category });
-    toolCalls.push(trace);
-    return reply(sayWarranty(data), "scripted", toolCalls);
+    return callAndRender("check_warranty_coverage", { bike_vin: ctx.bikeVin, category }, sayWarranty);
   }
 
   if (matchesAny(text, [/\binsurance claim\b/i, /\bfile a claim\b/i, /\bclaim for\b/i])) {
     if (!ctx?.ownerId) {
       return reply("I need your owner profile selected to file an insurance claim.", "scripted", toolCalls);
     }
-    const { trace, data } = await run("file_insurance_claim", {
-      owner_id: ctx.ownerId,
-      incident_desc: message
-    });
-    toolCalls.push(trace);
-    return reply(sayClaimFiled(data), "scripted", toolCalls);
+    return callAndRender("file_insurance_claim", { owner_id: ctx.ownerId, incident_desc: message }, sayClaimFiled);
   }
 
   const category = detectCategory(text);
@@ -480,24 +468,18 @@ async function handleOwner(message: string, ctx: AgentContext | undefined): Prom
       return reply("I need your owner profile and bike selected before logging a service request.", "scripted", toolCalls);
     }
     if (category === "customization") {
-      const { trace } = await run("request_customization", {
-        owner_id: ctx.ownerId,
-        bike_vin: ctx.bikeVin,
-        description: message
-      });
-      toolCalls.push(trace);
-      return reply(sayCustomizationLogged(), "scripted", toolCalls);
+      return callAndRender(
+        "request_customization",
+        { owner_id: ctx.ownerId, bike_vin: ctx.bikeVin, description: message },
+        sayCustomizationLogged
+      );
     }
     const urgency = /\burgent\b|\bemergency\b|\basap\b/i.test(text) ? "urgent" : "normal";
-    const { trace, data } = await run("log_service_request", {
-      owner_id: ctx.ownerId,
-      bike_vin: ctx.bikeVin,
-      category,
-      description: message,
-      urgency
-    });
-    toolCalls.push(trace);
-    return reply(sayTicketLogged(data), "scripted", toolCalls);
+    return callAndRender(
+      "log_service_request",
+      { owner_id: ctx.ownerId, bike_vin: ctx.bikeVin, category, description: message, urgency },
+      sayTicketLogged
+    );
   }
 
   return reply(
@@ -519,39 +501,27 @@ async function handleLeadership(message: string): Promise<AgentResponse> {
   if (
     matchesAny(text, [/\bbriefing\b/i, /\bwhat'?s going on\b/i, /\bwhat is going on\b/i, /\bhow'?s the business\b/i, /\bhow is the business\b/i, /\bdaily summary\b/i, /\bgive me the rundown\b/i])
   ) {
-    const { trace, data } = await run("owner_briefing", {});
-    toolCalls.push(trace);
-    return reply(sayOwnerBriefing(data), "scripted", toolCalls);
+    return callAndRender("owner_briefing", {}, sayOwnerBriefing);
   }
 
   if (matchesAny(text, [/\bbooking(s)?\b/i, /\bbooked\b/i, /\btest rides? today\b/i])) {
-    const { trace, data } = await run("get_booking_status", {});
-    toolCalls.push(trace);
-    return reply(sayBookingStatus(data), "scripted", toolCalls);
+    return callAndRender("get_booking_status", {}, sayBookingStatus);
   }
 
   if (matchesAny(text, [/\bfunnel\b/i, /\bconversion\b/i, /\bleads? (captured|to purchase)\b/i, /\bhow many leads\b/i])) {
-    const { trace, data } = await run("get_funnel_summary", {});
-    toolCalls.push(trace);
-    return reply(sayFunnel(data), "scripted", toolCalls);
+    return callAndRender("get_funnel_summary", {}, sayFunnel);
   }
 
   if (matchesAny(text, [/\bmaintenance queue\b/i, /\bworkshop\b/i, /\boverdue\b/i, /\bin for service\b/i])) {
-    const { trace, data } = await run("get_maintenance_queue", {});
-    toolCalls.push(trace);
-    return reply(sayMaintenanceQueue(data), "scripted", toolCalls);
+    return callAndRender("get_maintenance_queue", {}, sayMaintenanceQueue);
   }
 
   if (matchesAny(text, [/\bsales\b/i, /\brevenue\b/i, /\bunits sold\b/i, /\btop[- ]selling\b/i])) {
-    const { trace, data } = await run("get_sales_insights", {});
-    toolCalls.push(trace);
-    return reply(saySalesInsights(data), "scripted", toolCalls);
+    return callAndRender("get_sales_insights", {}, saySalesInsights);
   }
 
   if (matchesAny(text, [/\brsa\b/i, /\broadside\b/i, /\bbreakdown calls?\b/i])) {
-    const { trace, data } = await run("get_rsa_activity", {});
-    toolCalls.push(trace);
-    return reply(sayRsaActivity(data), "scripted", toolCalls);
+    return callAndRender("get_rsa_activity", {}, sayRsaActivity);
   }
 
   return reply(
