@@ -113,13 +113,13 @@ actually works end-to-end.
 
 ## Known limitations
 
-- Groq/Gemini tiers are implemented against their real SDKs/APIs but were not
-  exercised live in this build (no API keys available at build time) - only
-  the scripted fallback was verified end-to-end, per the task's priority.
-- `leadToPurchasePct` in the funnel can exceed 100% in the seed data because
-  `sales` and `leads` are independent seed tables (a sale isn't tied back to
-  the specific lead that generated it) - acceptable for a demo funnel, but a
-  real implementation would link sales to the lead/test-ride that produced them.
 - Free-text extraction (name/phone/city/VIN) in the scripted agent is
   regex-based and intentionally conservative: it asks a clarifying question
   rather than guessing when required fields aren't present in the message.
+- The scripted fallback is the final-resort tier only; Groq (tier 1) is the
+  enforced default and was extensively verified live end-to-end against the
+  real MCP server across all 22 tools and all 3 personas (see
+  `docs/testing/test_results.json` - 22/22 real tool calls, `tier: "groq"`
+  on nearly every response). Gemini (tier 2) is implemented against the real
+  SDK but was not separately load-tested since Groq never falls through to it
+  in normal operation.
