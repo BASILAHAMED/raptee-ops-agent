@@ -233,11 +233,13 @@ export default function EchoDevice() {
               type="button"
               onClick={listen}
               disabled={loading || listening}
-              className={listening ? "mic-active" : undefined}
-              title={listening ? "Listening..." : "Speak instead of typing"}
-              aria-label="Speak your question"
+              className={`mic-btn${listening ? " mic-active" : ""}`}
+              title={listening ? "Listening..." : "Talk to Raptee"}
+              aria-label="Talk to Raptee"
             >
-              {listening ? "Listening..." : "🎤"}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z"></path>
+              </svg>
             </button>
           )}
           <button onClick={() => send(input)} disabled={loading}>
