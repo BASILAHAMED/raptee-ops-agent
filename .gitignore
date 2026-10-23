@@ -10,3 +10,5 @@ dist/
 coverage/
 .next/
 *.log
+test_results.json
+test_summary.txt
