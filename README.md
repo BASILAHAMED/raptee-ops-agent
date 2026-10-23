@@ -7,6 +7,30 @@ Amazon Developer Hackathon - Build, Ship, Shape (Alexa+ track).
 One voice/chat surface, three personas, 22 real tools backed by a real
 (seeded) SQLite dataset - not a demo that just answers trivia.
 
+## Live Demo
+
+Both apps are deployed to Vercel production — judges can try the full chain
+with zero local setup:
+
+- **Simulated Alexa+ Echo Show app:** https://raptee-ops-sim.vercel.app
+- **MCP server (Streamable HTTP, bearer-token protected):** https://raptee-ops-mcp.vercel.app
+  - Health check: https://raptee-ops-mcp.vercel.app/health
+  - MCP endpoint: `POST https://raptee-ops-mcp.vercel.app/mcp`
+
+Try it end-to-end:
+
+```bash
+curl -s https://raptee-ops-sim.vercel.app/api/context   # live seeded owner/lead ids
+curl -s -X POST https://raptee-ops-sim.vercel.app/api/agent \
+  -H 'content-type: application/json' \
+  -d '{"message":"Why should I buy an EV instead of a petrol bike?","persona":"prospect"}'
+```
+
+Note: the MCP server runs as a stateless Vercel serverless function with its
+SQLite DB written to `/tmp` and re-seeded (`SEED=1`) on every cold start, so
+demo data does **not** persist permanently across cold starts — this is an
+expected serverless tradeoff for this hackathon deployment, not a bug.
+
 ## The pitch
 
 Raptee sells a genuinely different EV motorcycle - CCS2 universal charging
